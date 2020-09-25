@@ -2,6 +2,7 @@
 let container = document.querySelector('.gameZone');
 let startButton = document.getElementById('startButton');
 let game, turn;
+let gameState = document.getElementById('gameState');
 
 startButton.addEventListener('click', start);
 container.addEventListener('click', onCellClick);
@@ -13,8 +14,16 @@ function onCellClick(event)  {
     // console.log(dataset);
     if (dataset && dataset.row) {
         // console.log('pos', dataset.row, dataset.column)
-        const gamePlayer = game.input(dataset.row, dataset.column)
-        console.log(`Resultados: ${gamePlayer}` );
+        const gameCounter = game.input(dataset.row, dataset.column)
+        // console.log(`Resultados: ${gamePlayer}` );
+        if (gameCounter) {
+            if (gameCounter.game === 'won') {
+                gameState.innerHTML = `Jugador ${gameCounter.player} Gano!!!`;  
+            }
+            if (gameCounter.game === 'tie') {
+                gameState.innerHTML = `Juego Empatado`;  
+            }
+        }
         render(game.output());
     }
 }
@@ -23,6 +32,7 @@ function ticTacToe() {
     this.results = null;
     this.state = 'Playing';
     this.player = turn.toUpperCase();
+    this.round = 0;
     this.matrix = [
         [null, null, null],
         [null, null, null],
@@ -42,13 +52,22 @@ ticTacToe.prototype.input = function (row, column) {
                 this.setState('over');
                 this.setResults({
                     player: this.player,
-                    game: 'over'
+                    game: 'won'
                 })
-                return this.getResults;
+                return this.getResults();
             } else {
-            this.togglePlayer()
+            this.togglePlayer();
+        }
+        this.round++;
+        if (this.round === 9) {
+            this.setState('over');
+            this.setResults({
+                game: 'tie'
+            })
+            return this.getResults();
         }
     }
+    return this.getResults();
 };
 ticTacToe.prototype.setState = function (state) {
     this.state = state;
@@ -119,6 +138,7 @@ ticTacToe.prototype.checkGame = function (row, column) {
             if (cell !== symbol) {
                 return false;
             }
+            j--;
         }
     return true; 
     }
@@ -140,11 +160,12 @@ ticTacToe.prototype.output = function () {
 }
 
 function start() {
-    console.log('start');
+    // console.log('start');
     turn = prompt("Eliges X ó O ?",'');
     // console.log(turn)
     game = new ticTacToe();
     render(game.output());
+    gameState.innerHTML = 'Playing';
 }
 
 function render (matrix) {
